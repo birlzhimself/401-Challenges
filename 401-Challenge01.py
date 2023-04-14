@@ -1,4 +1,9 @@
-from datetime import datetime
+#!/usr/bin/python3
+
+#Script:   Ops Challenge: Class 02 - 401 Python Collections 
+#Purpose:  Transmit a single ICMP (ping) packet to a specific IP
+#Why:      Learn how to write an uptime sensor tool that checks systems are responding
+
 import time
 from pythonping import ping
 
