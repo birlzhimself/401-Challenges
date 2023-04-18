@@ -9,35 +9,45 @@ import time
 import smtplib
 from email.message import EmailMessage
 
-#Email address and password:
 
-graphql
-Copy code
-email = input("hugo.m.rebelooo@gmail.com: ")
-password = pwhugo
+# Define the email sender and recipient addresses
+sender_email = input("example@example.com")
+sender_password = input("1234567890")
+recipient_email = input("example2@example")
 
-#Create a function that sends an email with the necessary information when a host status changes. This function should take the previous status, current status, and host name as arguments:
+# Define the hosts to monitor
+hosts = ["8.8.8.8"]
 
-python
-Copy code
-def send_email(previous_status, current_status, host_name):
-    subject = f"Host status changed: {host_name}"
-    body = f"The status of {host_name} changed from {previous_status} to {current_status} at {datetime.datetime.now()}"
-    message = f"Subject: {subject}\n\n{body}"
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-        server.login(email, password)
-        server.sendmail(email, email, message)
-        
-#Modify the check_host function to call the send_email function if the status has changed:
+# Define the initial status of the hosts
+status = {host: None for host in hosts}
 
-lua
-Copy code
-def check_host(host):
-    previous_status = host.status
-    response = os.system("ping -c 1 " + host.address)
-    if response == 0:
-        host.status = "up"
-    else:
-        host.status = "down"
-    if host.status != previous_status:
-        send_email(previous_status, host.status, host.name)
+def send_email(host, status_before, status_after, timestamp):
+    # Define the email subject and message
+    subject = f"Uptime sensor alert: {host} status changed"
+    message = f"Host {host} status changed from {status_before} to {status_after} at {timestamp}"
+
+    # Connect to the SMTP server and send the email
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, recipient_email, f"Subject: {subject}\n\n{message}")
+
+while True:
+    # Check the status of each host
+    for host in hosts:
+        try:
+            # Ping the host to check its status
+            response = socket.create_connection((host, 80), timeout=1)
+            response.close()
+            new_status = "up"
+        except OSError:
+            new_status = "down"
+
+        # If the status has changed, send an email notification
+        if new_status != status[host] and status[host] is not None:
+            send_email(host, status[host], new_status, datetime.datetime.now())
+
+        # Update the status of the host
+        status[host] = new_status
+
+    # Wait for 5 minutes before checking the status again
+    time.sleep(300)
