@@ -7,47 +7,58 @@
 import os
 import time
 import smtplib
-from email.message import EmailMessage
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 
+# User input for email address and password
+email_address = input("Example@example.com: ")
+email_password = input("1234657900: ")
 
-# Define the email sender and recipient addresses
-sender_email = input("example@example.com")
-sender_password = input("1234567890")
-recipient_email = input("example2@example")
+# Email message details
+sender_email = email_address
+receiver_email = "qfxhqkwdxfgbarqegb@bbitf.com"
+email_subject = "Uptime status changed"
 
-# Define the hosts to monitor
-hosts = ["8.8.8.8"]
-
-# Define the initial status of the hosts
-status = {host: None for host in hosts}
-
-def send_email(host, status_before, status_after, timestamp):
-    # Define the email subject and message
-    subject = f"Uptime sensor alert: {host} status changed"
-    message = f"Host {host} status changed from {status_before} to {status_after} at {timestamp}"
-
-    # Connect to the SMTP server and send the email
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, recipient_email, f"Subject: {subject}\n\n{message}")
+destination_ip = input("8.8.8.8")
+status = ""
+counter = 0
 
 while True:
-    # Check the status of each host
-    for host in hosts:
-        try:
-            # Ping the host to check its status
-            response = socket.create_connection((host, 80), timeout=1)
-            response.close()
-            new_status = "up"
-        except OSError:
-            new_status = "down"
+    response = os.system(f"ping -c 1 {destination_ip} > /dev/null 2>&1")
+    if response == 0:
+        new_status = "up"
+    else:
+        new_status = "down"
 
-        # If the status has changed, send an email notification
-        if new_status != status[host] and status[host] is not None:
-            send_email(host, status[host], new_status, datetime.datetime.now())
+    if new_status != status:
+        # Send email notification if status has changed
+        message = MIMEMultipart()
+        message['From'] = sender_email
+        message['To'] = receiver_email
+        message['Subject'] = email_subject
+        message_body = f"The status of {destination_ip} has changed from {status} to {new_status} at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}"
+        message.attach(MIMEText(message_body, 'plain'))
 
-        # Update the status of the host
-        status[host] = new_status
+        # Add log file as attachment
+        with open("ping_log.txt", "rb") as file:
+            log_attachment = MIMEBase('application', 'octet-stream')
+            log_attachment.set_payload(file.read())
+        encoders.encode_base64(log_attachment)
+        log_attachment.add_header('Content-Disposition', 'attachment', filename="ping_log.txt")
+        message.attach(log_attachment)
 
-    # Wait for 5 minutes before checking the status again
-    time.sleep(300)
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(email_address, email_password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+
+    timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+    log_entry = f"{timestamp} Network {new_status} to {destination_ip}"
+    print(log_entry)
+
+    with open("ping_log.txt", "a") as file:
+        file.write(log_entry + "\n")
+
+    status = new_status
+    time.sleep(2)
