@@ -4,8 +4,8 @@ import smtplib
 
 graphql
 Copy code
-email = input("Enter your email address: ")
-password = input("Enter your email password: ")
+email = input("hugo.m.rebelooo@gmail.com: ")
+password = 
 
 #Create a function that sends an email with the necessary information when a host status changes. This function should take the previous status, current status, and host name as arguments:
 
