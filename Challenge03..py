@@ -1,6 +1,15 @@
-import smtplib
+#!/usr/bin/python3
 
-#Ask the user for an email address and password:
+#Script:   Ops Challenge: Class 03 - 401 Python Collections 
+#Purpose:  Ask the user for an email address and password to use for sending notifications.
+#Why:      Send an email to the administrator if a host status changes 
+
+import os
+import time
+import smtplib
+from email.message import EmailMessage
+
+#Email address and password:
 
 graphql
 Copy code
