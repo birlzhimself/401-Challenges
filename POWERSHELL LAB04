@@ -1,0 +1,15 @@
+# Enable 'Password must meet complexity requirements'
+$seceditOutput = secedit.exe /export /cfg $env:TEMP\secpol.cfg
+$configContent = Get-Content $env:TEMP\secpol.cfg
+$configContent = $configContent -replace "PasswordComplexity = 0", "PasswordComplexity = 1"
+Set-Content $env:TEMP\secpol.cfg $configContent
+secedit.exe /configure /db security /cfg $env:TEMP\secpol.cfg /areas SECURITYPOLICY
+
+# Disable SMB1Protocol
+Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol
+Completed 5 percent (0/18) 	Process Security Policy area        
+Completed 22 percent (3/18) 	Process Security Policy area        
+Completed 44 percent (7/18) 	Process Security Policy area        
+Completed 61 percent (10/18) 	Process Security Policy area        
+Completed 77 percent (13/18) 	Process Security Policy area        
+Completed 100 percent (18/18) 	Process Security Policy area 
