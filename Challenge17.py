@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # Script : OpsChallenge17.py
-# Purpose: Automated Brute Force
+# Purpose: Create a Brute Foce attack tool Part2
 
 import time
 import paramiko
