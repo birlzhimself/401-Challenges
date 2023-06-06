@@ -1,6 +1,111 @@
 #!/usr/bin/python3
 
-# Script : OpsChallenge08.py
-# Purpose: Create a popup window on a Windows PC with a ransomware message
-# Why    : Learn how ransomware works
+# Script : OpsChallenge12.py
+# Purpose: User menu prompting choice between TCP Port Range Scanner mode and ICMP Ping
 
+
+from scapy.all import *
+import random
+import ipaddress
+import logging
+
+# Suppresses a constant warning message
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
+def get_network_details():
+    
+    # This function prompts the user to enter a network address with CIDR block and returns the network address and subnet mask as strings.
+    
+    # Returns:
+    # tuple: The network address and subnet mask as strings.
+   
+    while True:
+        try:
+            network_address = input("Enter the network address with CIDR block (e.g. 192.168.1.0/24): ")
+            ipaddress.ip_network(network_address)
+            return str(ipaddress.ip_network(network_address).network_address), str(ipaddress.ip_network(network_address).netmask)
+        except ValueError:
+            print("Invalid network address. Please try again.")
+
+def ping_all_hosts(network_address):
+    
+    # This function pings all hosts on the network except for the network address and broadcast address.
+    # It prints the status of each host and returns the number of hosts that are online.
+    
+    # Parameters:
+    # network_address (str): The network address to scan
+    
+    # Returns:
+    # int: The number of hosts that are online
+
+    network = ipaddress.ip_network(network_address)
+    online_hosts = 0
+    
+    for host in network.hosts():
+        if str(host) != str(network.network_address) and str(host) != str(network.broadcast_address):
+            response = sr1(IP(dst=str(host))/ICMP(), timeout=0.5, verbose=0)
+            if response is None:
+                print(f"{host} is down or unresponsive.")
+            elif response.haslayer(ICMP) and response.getlayer(ICMP).type == 3 and response.getlayer(ICMP).code in [1, 2, 3, 9, 10, 13]:
+                print(f"{host} is actively blocking ICMP traffic.")
+            else:
+                print(f"{host} is responding.")
+                online_hosts += 1
+    
+    return online_hosts
+
+def scan_tcp_port_range(target_ip, port_range):
+    
+    # This function scans a host IP for a range of TCP ports while randomizing the source port.
+    # It prints the status of each port.
+    
+    # Parameters:
+    # target_ip (str): The IP address of the target host
+    # port_range (range): The range of TCP ports to scan
+    
+    for port in port_range:
+        # Create SYN packet
+        packet = IP(dst=target_ip)/TCP(sport=random.randint(1024, 65535), dport=port, flags="S")
+        
+        # Send packet and capture response
+        response = srp1(packet, timeout=1, verbose=0)
+        
+        # Check if response is received
+        if response is None:
+            print(f"Port {port} is either filtered or closed.")
+        elif response.haslayer(TCP):
+            if response.getlayer(TCP).flags == 0x12:
+                send_rst = IP(dst=target_ip)/TCP(sport=random.randint(1024, 65535),dport=port,flags="R")
+                send(send_rst)
+                print(f"Port {port} is open.")
+            elif response.getlayer(TCP).flags == 0x14:
+                print(f"Port {port} is closed.")
+
+def user_interface():
+    
+    # This function prompts the user for a choice between TCP Port Range Scanner mode and ICMP Ping Sweep mode.
+    # It calls the appropriate function based on the user's choice.
+    
+    while True:
+        try:
+            choice = int(input("Choose a mode:\n1. TCP Port Range Scanner\n2. ICMP Ping Sweep\n3. Exit\n"))
+            if choice == 1:
+                target_ip = input("Enter the target IP address: ")
+                port_range = range(int(input("Enter the starting port number: ")), int(input("Enter the ending port number: "))+1)
+                scan_tcp_port_range(target_ip, port_range)
+                break
+            elif choice == 2:
+                network_address, subnet_mask = get_network_details()
+                print(f"Scanning network {network_address}/{subnet_mask}...")
+                online_hosts = ping_all_hosts(f"{network_address}/{subnet_mask}")
+                print(f"{online_hosts} hosts are online.")
+                break
+            elif choice == 3:
+                print("Exiting...")
+                break
+            else:
+                print("Invalid choice. Please try again.")
+        except ValueError:
+            print("Invalid choice. Please try again.")
+
+user_interface()
