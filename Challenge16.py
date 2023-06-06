@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # Script : OpsChallenge16.py
-# Purpose: Create a Brute Foce attack tool
+# Purpose: Create a Brute Foce attack tool Part1
 
 import time
 
