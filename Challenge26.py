@@ -4,7 +4,7 @@
 # Purpose        Proceeds to ping 8.8.8.8 indefinitely while printing a timestamp and success or failure message to the console and writing it to a log file with a maximum size.
 # Why            Learn how to use the logging library.
 
-import os
+import subprocess
 import time
 import logging
 
@@ -12,25 +12,26 @@ import logging
 logging.basicConfig(filename="ping_log.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 ip_address = "8.8.8.8"
-status = ""
 
 logging.info('Starting script... Pinging 8.8.8.8\n')
 
 def ping(ip_address):
-    response = os.system(f"ping -c 1 {ip_address} > ping_log.txt 2>&1")
-    if response == 0:
-        status = "success"
-    else:
-        status = "failure"
-
-    log_entry = f"Network {status} to {ip_address}"
-    logging.info(log_entry)
-
-# Main loop
-while True:
     try:
-        ping(ip_address)
+        result = subprocess.run(["ping", "-c", "1", ip_address], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            status = "success"
+        else:
+            status = "failure"
+
+        log_entry = f"Network {status} to {ip_address}"
+        logging.info(log_entry)
+
+    except subprocess.TimeoutExpired:
+        logging.error(f"Timeout error occurred while pinging {ip_address}")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
+# Main loop
+while True:
+    ping(ip_address)
     time.sleep(2)
