@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python3
 
 # Script         Ops Challenge: Event Logging Tool Part 2 of 3
 # Purpose        Proceeds to ping 8.8.8.8 indefinitely while printing a timestamp and success or failure message to the console and writing it to a log file with a maximum size.
