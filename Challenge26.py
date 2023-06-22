@@ -4,31 +4,33 @@
 # Purpose: Create
 # Why
 
+import os
+import time
 import logging
 
-def start_logging():
-    # Step 1: Configure the logging settings
-    logging.basicConfig(
-        filename='app.log',  # Specify the log file name
-        level=logging.DEBUG,  # Set the logging level to DEBUG (you can change it as needed)
-        format='%(asctime)s - %(levelname)s - %(message)s'  # Specify the log message format
-    )
+# Configure logging settings
+logging.basicConfig(filename="ping_log.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-    # Step 2: Log messages
-    logging.debug('This is a debug message')
-    logging.info('This is an informational message')
-    logging.warning('This is a warning message')
-    logging.error('This is an error message')
-    logging.critical('This is a critical message')
+ip_address = "8.8.8.8"
+status = ""
 
-    # Step 3: Add error handling and induce errors
+logging.info('Starting script... Pinging 8.8.8.8\n')
+
+def ping(ip_address):
+    response = os.system(f"ping -c 1 {ip_address} > ping_log.txt 2>&1")
+    if response == 0:
+        status = "success"
+    else:
+        status = "failure"
+
+    log_entry = f"Network {status} to {ip_address}"
+    logging.info(log_entry)
+
+# Main loop
+while True:
     try:
-        # Code that may cause an error
-        num1 = 10
-        num2 = 0
-        result = num1 / num2
+        ping(ip_address)
     except Exception as e:
-        logging.exception('An error occurred: %s', str(e))
+        logging.error(f"An error occurred: {e}")
 
-if __name__ == '__main__':
-    start_logging()
+    time.sleep(2)
