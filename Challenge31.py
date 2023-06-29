@@ -1,4 +1,9 @@
-import os
+#!/usr/bin/python3
+
+# Script         Ops Challenge: Signature-based Malware Detection Part 1 of 3
+# Purpose        Detection and remediation of malware is the core function
+# Why            Learn how to use the import sys
+
 import sys
 # Get the file name to search for.
 filename = input("Enter the file name to search for: ")
